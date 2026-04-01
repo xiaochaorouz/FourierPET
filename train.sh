@@ -3,7 +3,7 @@ set -e
 
 # ======================== Configuration ========================
 CONFIG="configs/FourierPET_3_2.yml"
-GPU_IDS="0"
+GPU_IDS="1"
 # ===============================================================
 
 # Uncomment to use real clinical data config instead:

@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="https://doi.org/10.1609/aaai.v40i15.38299"><img src="https://img.shields.io/badge/AAAI-2026-blue" alt="AAAI 2026"></a>
+  <a href="https://ojs.aaai.org/index.php/AAAI/article/view/38299"><img src="https://img.shields.io/badge/AAAI-2026-blue" alt="AAAI 2026"></a>
   <img src="https://img.shields.io/badge/Oral-red" alt="Oral">
   <a href="https://arxiv.org/abs/2601.11680"><img src="https://img.shields.io/badge/arXiv-2601.11680-b31b1b" alt="arXiv"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green" alt="License: MIT"></a>
