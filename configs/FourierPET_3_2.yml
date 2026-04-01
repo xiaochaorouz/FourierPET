@@ -1,0 +1,100 @@
+# Experiment name
+exp_name: FourierPET_3_2
+
+# Output directory
+root_dir: outputs
+
+# Dataset
+train_db_name: Simulated_data
+val_db_name: Simulated_data
+do_normalize: False
+threshold: 0.0
+set_random_seed: 123
+train_ratio: 0.8
+image_size: 128
+val_image_size: 128
+
+# Data paths (update these to your local dataset paths)
+pet_path: /data1/zhangzheng/datasets/Brainweb/brainweb_pet.lmdb
+prior_path: /data1/zhangzheng/datasets/Brainweb/brainweb_mr.lmdb
+
+# Simulation
+simulate_data: True
+count: 2e5
+
+# Projection
+projection_type: parallel_beam
+projection_kwargs:
+   angles: [0, 1.0, 128]
+   del_count: 128
+   volume: 128
+   r: 128
+
+# Transformations
+augmentation_strategy: classical_noise
+augmentation_kwargs:
+   uniform_noise:
+      a: -0.1
+      b: 0.1
+      rate: 0.2
+
+# Model
+backbone: FourierPET
+backbone_kwargs:
+   model_input_size: [128, 128]
+   admm_iter: 3
+   inner_iter: 2
+   count: 20e4
+   wave: 'haar'
+   J: 1
+   spatial_dilations: [1, 2, 4, 8]
+   ffn_dim: 8
+   mode1: 16
+   mode2: 16
+   hidden_dim: 48
+   ssd_state_dim: 48
+
+# Loss
+criterion: sl1
+loss_type:
+   loss_pred: 0.5
+   loss_phase_amp: 0.0
+   loss_fourier: 0.01
+   loss_ssim: 0.3
+   loss_sino: 0.0
+   inner_loss_pred: 0.0
+   loss_deep_mse: 0.0
+   loss_wstl: 0.0
+   loss_weighted_mse: 0.0
+criterion_kwargs:
+   entropy_weight: 5.0
+
+num_heads: 4
+
+# Optimizer
+optimizer: adamw
+optimizer_kwargs:
+   lr: 0.001
+   betas: [0.9, 0.999]
+   weight_decay: 0.0001
+
+# Learning rate scheduler
+scheduler: CosineAnnealingLR
+scheduler_kwargs:
+   T_max: 100
+   eta_min: 0.00001
+
+# Hyperparameters
+epochs: 100
+num_workers: 0
+batch_size: 16
+ES_PATIENCE: 50
+
+# Prior
+use_prior: False
+post_process: False
+
+# LOOCV
+LOOCV: True
+LOOCV_num: 20
+slices_per_case: 81

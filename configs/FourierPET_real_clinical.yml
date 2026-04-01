@@ -1,0 +1,110 @@
+# Experiment name
+exp_name: FourierPET_real_clinical
+
+# Output directory
+root_dir: outputs
+
+# Dataset
+train_db_name: Real_clinical_data
+val_db_name: Real_clinical_data
+do_normalize: False
+threshold: 0.0
+set_random_seed: 123
+train_ratio: 0.8
+image_size: 128
+val_image_size: 128
+
+# Data paths — dose levels (keys are arbitrary, 'full' is required)
+dose_paths:
+    full: /path/to/train_full_dose.lmdb
+    5min: /path/to/train_5min.lmdb
+    1min: /path/to/train_1min.lmdb
+    6s:   /path/to/train_6s.lmdb
+prior_path: /path/to/train_CT.lmdb
+
+val_dose_paths:
+    full: /path/to/test_full_dose.lmdb
+    5min: /path/to/test_5min.lmdb
+    1min: /path/to/test_1min.lmdb
+    6s:   /path/to/test_6s.lmdb
+val_prior_path: /path/to/test_CT.lmdb
+
+# Real data mode — select which dose level to use as model input
+simulate_data: False
+data_selection: 1min
+
+# Projection
+projection_type: parallel_beam
+projection_kwargs:
+    angles: [0, 1.0, 128]
+    del_count: 128
+    volume: 128
+    r: 128
+
+# Transformations
+augmentation_strategy: classical_noise
+augmentation_kwargs:
+    uniform_noise:
+        a: -0.1
+        b: 0.1
+        rate: 0.2
+
+# Loss
+criterion: sl1
+loss_type:
+    loss_pred: 0.5
+    loss_phase_amp: 0.0
+    loss_fourier: 0.01
+    loss_ssim: 0.3
+    loss_sino: 0.0
+    inner_loss_pred: 0.0
+    loss_deep_mse: 0.0
+    loss_wstl: 0.0
+    loss_weighted_mse: 0.0
+criterion_kwargs:
+    entropy_weight: 5.0
+
+# Model
+backbone: FourierPET
+backbone_kwargs:
+    model_input_size: [128, 128]
+    admm_iter: 3
+    inner_iter: 2
+    count: 20e4
+    wave: 'haar'
+    J: 1
+    spatial_dilations: [1, 2, 4, 8]
+    ffn_dim: 8
+    mode1: 16
+    mode2: 16
+    hidden_dim: 48
+    ssd_state_dim: 48
+
+num_heads: 4
+
+# Optimizer
+optimizer: adamw
+optimizer_kwargs:
+    lr: 0.001
+    betas: [0.9, 0.999]
+    weight_decay: 0.0001
+
+# Learning rate scheduler
+scheduler: CosineAnnealingLR
+scheduler_kwargs:
+    T_max: 200
+    eta_min: 0.00001
+
+# Hyperparameters
+epochs: 200
+num_workers: 0
+batch_size: 16
+ES_PATIENCE: 50
+
+# Prior
+use_prior: False
+post_process: False
+
+# LOOCV
+LOOCV: False
+LOOCV_num: 20
