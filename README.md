@@ -1,101 +1,72 @@
 # FourierPET
 
-Official implementation of **FourierPET**: an ADMM-unrolled deep network for PET image reconstruction that jointly operates in spatial, wavelet, and Fourier domains.
+<p align="center">
+  <b>Deep Fourier-based Unrolled Network for Low-count PET Reconstruction</b>
+</p>
 
-<!-- TODO: Add paper link after publication -->
-<!-- > **Paper Title**  
-> Author1, Author2, ...  
-> *Conference/Journal, Year*  
-> [[Paper]](link) [[arXiv]](link) -->
+<p align="center">
+  <a href="https://doi.org/10.1609/aaai.v40i15.38299"><img src="https://img.shields.io/badge/AAAI-2026-blue" alt="AAAI 2026"></a>
+  <a href="https://arxiv.org/abs/2601.11680"><img src="https://img.shields.io/badge/arXiv-2601.11680-b31b1b" alt="arXiv"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green" alt="License: MIT"></a>
+</p>
+
+<p align="center">
+  <a href="#overview">Overview</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#data-preparation">Data</a> •
+  <a href="#training">Training</a> •
+  <a href="#evaluation">Evaluation</a> •
+  <a href="#results">Results</a> •
+  <a href="#citation">Citation</a>
+</p>
+
+This is the official PyTorch implementation of **"FourierPET: Deep Fourier-based Unrolled Network for Low-count PET Reconstruction"**, accepted at **AAAI 2026**.
+
+> **TL;DR** — We reveal that low-count PET degradations are spectrally separable (high-freq phase drift vs. low-freq amplitude suppression) and propose an ADMM-unrolled framework with frequency-aware correction modules.
 
 ## Overview
 
-FourierPET is a learnable ADMM-based unrolling framework for PET image reconstruction. Each ADMM iteration consists of:
+Low-count PET images suffer from three intertwined degradations: Poisson noise, photon scarcity, and attenuation correction (AC) errors. Through Fourier-domain analysis, we show that these degradations exhibit *separable spectral signatures* — Poisson noise and photon scarcity mainly perturb high-frequency phase, while AC errors suppress low-frequency amplitude.
+<p align="center">
+  <img src="figs/motivation.jpg" alt="Motivation: Fourier-domain analysis of low-count PET degradations" width="95%" />
+</p>
+Based on this insight, we propose **FourierPET**, an ADMM-unrolled reconstruction framework with three tailored modules:
 
-- **X-update** via the **Spectral Convolution Module (SCM)**: combines local spatial features (depthwise CNN) with global spectral features (FNO-style blocks using State Space Duality in the frequency domain).
-- **Z-update** via the **Amplitude-Phase Correction Module (APCM)**: decomposes features using DWT, then processes each subband in both spatial and Fourier domains with separate amplitude and phase correction branches.
-- **Dual variable update** with a learnable step size.
+- **Spectral Consistency Module (SCM)** — enforces data fidelity and global frequency alignment via state-space Fourier neural operators.
+- **Amplitude–Phase Correction Module (APCM)** — decouples and corrects low-frequency amplitude suppression and high-frequency phase distortions.
+- **Dual Adjustment Module (DAM)** — learns an adaptive dual update step to accelerate and stabilize convergence.
 
-## Project Structure
+<p align="center">
+  <img src="figs/flowchart.jpg" alt="\textbf{Overview of the proposed \textit{FourierPET} architecture.}" width="95%" />
+</p>
 
-```
-FourierPET/
-├── train.py                  # Main training script
-├── configs/
-│   ├── env.yml               # Environment config (output directory)
-│   └── FourierPET_3_2.yml    # Experiment config
-├── models/
-│   ├── FourierPET.py          # FourierPET network (ADMM unrolling)
-│   ├── SCM.py                 # Spectral Convolution Module
-│   ├── APCM.py                # Amplitude-Phase Correction Module
-│   ├── efficientViM.py        # HSM-SSD blocks
-│   └── efficientViM_utils.py  # Layer utilities
-├── data/
-│   └── pet_data.py            # LMDB-based PET data loader
-├── trains/
-│   └── unrolling_train.py     # Training and validation loops
-└── utils/
-    ├── config.py              # Config loading
-    ├── common_config.py       # Object creation factories
-    ├── dataset_registry.py    # Dataset registry
-    ├── model_registry.py      # Model registry
-    ├── criterion_registry.py  # Loss function registry
-    ├── optimizer_registry.py  # Optimizer registry
-    ├── projection_simulation.py  # Radon projection utilities
-    └── utils.py               # Metrics (SSIM, PSNR, RMSE) and Fourier utils
-```
 
 ## Installation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/FourierPET.git
+git clone https://github.com/xiaochaorouz/FourierPET.git
 cd FourierPET
 pip install -r requirements.txt
 ```
 
 ### Dependencies
 
-- Python >= 3.8
-- PyTorch >= 1.12
-- [torch-radon](https://github.com/matteo-ronchetti/torch-radon) (for parallel beam projection)
-- [pytorch_wavelets](https://github.com/fbcotter/pytorch_wavelets) (for DWT/iDWT)
+- Python ≥ 3.10
+- PyTorch ≥ 2.1.1
+- [torch-radon](https://github.com/matteo-ronchetti/torch-radon)
+- [pytorch_wavelets](https://github.com/fbcotter/pytorch_wavelets)
 - See `requirements.txt` for the full list.
 
 ## Data Preparation
 
-This project uses LMDB-format datasets. Two dataset modes are supported:
-
-### Simulated Data (e.g. BrainWeb)
+This project uses LMDB-format datasets. Configure dataset paths in the YAML config file:
 
 ```yaml
+# Example: BrainWeb simulated data
 train_db_name: Simulated_data
-val_db_name: Simulated_data
-pet_path: /path/to/brainweb_pet.lmdb
-prior_path: /path/to/brainweb_mr.lmdb
-```
-
-### Real Clinical Data (multi-dose)
-
-Dose levels are configured via a `dose_paths` dict — keys are arbitrary names
-(e.g. scan durations), and `full` is required as the reference target.
-
-```yaml
-train_db_name: Real_clinical_data
-val_db_name: Real_clinical_data
-
-dose_paths:
-    full: /path/to/train_full_dose.lmdb
-    5min: /path/to/train_5min.lmdb
-    1min: /path/to/train_1min.lmdb
-    6s:   /path/to/train_6s.lmdb
-prior_path: /path/to/train_CT.lmdb
-
-val_dose_paths:
-    full: /path/to/test_full_dose.lmdb
-    5min: /path/to/test_5min.lmdb
-    1min: /path/to/test_1min.lmdb
-    6s:   /path/to/test_6s.lmdb
-val_prior_path: /path/to/test_CT.lmdb
+val_db_name:   Simulated_data
+pet_path:      /path/to/brainweb_pet.lmdb
+prior_path:    /path/to/brainweb_mr.lmdb
 ```
 
 ## Training
@@ -104,7 +75,7 @@ val_prior_path: /path/to/test_CT.lmdb
 python train.py --config_exp configs/FourierPET_3_2.yml
 ```
 
-Training outputs (checkpoints, logs, figures) are saved to `outputs/FourierPET_3_2/`.
+Checkpoints, logs, and figures are saved to `outputs/FourierPET_3_2/`.
 
 ## Evaluation
 
@@ -126,32 +97,27 @@ python test.py --config_exp configs/FourierPET_3_2.yml \
 
 Results (JSON metrics and optional image grids) are saved to `outputs/<exp_name>/test_results/`.
 
-### Key Configuration Options
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `backbone_kwargs.admm_iter` | Number of ADMM iterations | 3 |
-| `backbone_kwargs.inner_iter` | Inner iterations per ADMM block | 2 |
-| `backbone_kwargs.hidden_dim` | Hidden channels for SCM | 48 |
-| `backbone_kwargs.ssd_state_dim` | State dimension for SSD | 48 |
-| `backbone_kwargs.wave` | Wavelet type for APCM | haar |
-| `count` | Simulated photon count | 2e5 |
-| `epochs` | Training epochs | 100 |
-| `batch_size` | Batch size | 16 |
-| `LOOCV` | Enable leave-one-out cross-validation | True |
-
 ## Citation
 
 If you find this work useful, please cite:
 
 ```bibtex
-@article{zhang2025fourierpet,
-  title={FourierPET: ...},
-  author={Zhang, Zheng and ...},
-  journal={...},
-  year={2025}
+@article{Zhang_Tang_Hu_Hu_Qin_2026,
+  title   = {FourierPET: Deep Fourier-based Unrolled Network for Low-count PET Reconstruction},
+  author  = {Zhang, Zheng and Tang, Hao and Hu, Yingying and Hu, Zhanli and Qin, Jing},
+  journal = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume  = {40},
+  number  = {15},
+  pages   = {12997--13005},
+  year    = {2026},
+  month   = {Mar.},
+  doi     = {10.1609/aaai.v40i15.38299},
 }
 ```
+
+## Acknowledgements
+
+Thanks to the [EfficientViM](https://github.com/mlvlab/EfficientViM) authors for their code (CVPR 2025).
 
 ## License
 

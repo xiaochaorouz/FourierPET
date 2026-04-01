@@ -1,5 +1,5 @@
-torch>=1.12.0
-torchvision>=0.13.0
+torch>=2.1.1
+torchvision>=0.16.1
 numpy
 matplotlib
 pytorch_wavelets
