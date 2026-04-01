@@ -6,6 +6,7 @@
 
 <p align="center">
   <a href="https://doi.org/10.1609/aaai.v40i15.38299"><img src="https://img.shields.io/badge/AAAI-2026-blue" alt="AAAI 2026"></a>
+  <img src="https://img.shields.io/badge/Oral-red" alt="Oral">
   <a href="https://arxiv.org/abs/2601.11680"><img src="https://img.shields.io/badge/arXiv-2601.11680-b31b1b" alt="arXiv"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green" alt="License: MIT"></a>
 </p>
@@ -19,7 +20,7 @@
   <a href="#citation">Citation</a>
 </p>
 
-This is the official PyTorch implementation of **"FourierPET: Deep Fourier-based Unrolled Network for Low-count PET Reconstruction"**, accepted at **AAAI 2026 (Oral)**.
+This is the official PyTorch implementation of **"FourierPET: Deep Fourier-based Unrolled Network for Low-count PET Reconstruction"**, accepted as an **Oral** presentation at **AAAI 2026**.
 
 > **TL;DR** — We reveal that low-count PET degradations are spectrally separable (high-freq phase drift vs. low-freq amplitude suppression) and propose an ADMM-unrolled framework with frequency-aware correction modules.
 
@@ -101,7 +102,7 @@ Results (JSON metrics and optional image grids) are saved to `outputs/<exp_name>
 If you find this work useful, please cite:
 
 ```bibtex
-@article{Zhang_Tang_Hu_Hu_Qin_2026,
+@article{zhang2026fourierpet,
   title   = {FourierPET: Deep Fourier-based Unrolled Network for Low-count PET Reconstruction},
   author  = {Zhang, Zheng and Tang, Hao and Hu, Yingying and Hu, Zhanli and Qin, Jing},
   journal = {Proceedings of the AAAI Conference on Artificial Intelligence},
