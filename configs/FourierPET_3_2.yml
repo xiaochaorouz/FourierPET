@@ -15,8 +15,8 @@ image_size: 128
 val_image_size: 128
 
 # Data paths (update these to your local dataset paths)
-pet_path: /data1/zhangzheng/datasets/Brainweb/brainweb_pet.lmdb
-prior_path: /data1/zhangzheng/datasets/Brainweb/brainweb_mr.lmdb
+pet_path: datasets/Brainweb/brainweb_pet.lmdb
+prior_path: datasets/Brainweb/brainweb_mr.lmdb
 
 # Simulation
 simulate_data: True
