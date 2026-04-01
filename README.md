@@ -19,7 +19,7 @@
   <a href="#citation">Citation</a>
 </p>
 
-This is the official PyTorch implementation of **"FourierPET: Deep Fourier-based Unrolled Network for Low-count PET Reconstruction"**, accepted at **AAAI 2026**.
+This is the official PyTorch implementation of **"FourierPET: Deep Fourier-based Unrolled Network for Low-count PET Reconstruction"**, accepted at **AAAI 2026 (Oral)**.
 
 > **TL;DR** — We reveal that low-count PET degradations are spectrally separable (high-freq phase drift vs. low-freq amplitude suppression) and propose an ADMM-unrolled framework with frequency-aware correction modules.
 
