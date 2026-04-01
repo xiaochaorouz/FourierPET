@@ -115,15 +115,24 @@ class ZUpdateBlock(nn.Module):
         z_proposed = self.wavelet_dft(x + u_prev)
         return (x, y, z_proposed, u_prev)
 
+class DAM(nn.Module):
+    """Dual Adjustment Module.
+    
+    Learnable scalar step-size for the dual variable update,
+    preserving the dual ascent interpretation of ADMM.
+    """
+    def __init__(self, init_eta=0.001):
+        super().__init__()
+        self.eta = nn.Parameter(torch.tensor(init_eta))
 
-class InterBlock(nn.Module):
-    """Single ADMM iteration block combining X-update, Z-update, and dual update."""
+    def forward(self, u, x, z):
+        return u + self.eta * (x - z)
 
+class UUpdateBlock(nn.Module):
     def __init__(self, inner_iter, pbeam, hidden_dim=16, ssd_state_dim=64,
                  wave='haar', J=1, spatial_dilations=(1, 2, 4, 8),
                  ffn_dim=32, mode1=16, mode2=16):
         super().__init__()
-        self.eta = nn.Parameter(torch.tensor(0.001))
         self.layers_up_x = nn.ModuleList([
             XUpdateBlock(pbeam, inner_iter, hidden_dim=hidden_dim,
                          ssd_state_dim=ssd_state_dim, mode1=mode1, mode2=mode2)
@@ -133,6 +142,7 @@ class InterBlock(nn.Module):
                          spatial_dilations=spatial_dilations, ffn_dim=ffn_dim)
             for _ in range(inner_iter)
         ])
+        self.dam = DAM(init_eta=0.001)
 
     def forward(self, ins, prior=None):
         x, y, z, b, h = ins
@@ -140,7 +150,7 @@ class InterBlock(nn.Module):
             x, y, z, b, h = layer((x, y, z, b, h))
         for layer in self.layers_up_z:
             x, y, z, b = layer((x, y, z, b), prior)
-        b = b + self.eta * (x - z)
+        b = self.dam(b, x, z)
         return x, y, z, b, h
 
 
@@ -170,7 +180,7 @@ class FourierPET(nn.Module):
         self.inner_iter = inner_iter
         self.radon = radon
         self.layers = nn.ModuleList([
-            InterBlock(
+            UUpdateBlock(
                 self.inner_iter, radon, hidden_dim=hidden_dim,
                 ssd_state_dim=ssd_state_dim, wave=wave, J=J,
                 spatial_dilations=spatial_dilations, ffn_dim=ffn_dim,
