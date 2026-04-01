@@ -16,7 +16,6 @@
   <a href="#data-preparation">Data</a> •
   <a href="#training">Training</a> •
   <a href="#evaluation">Evaluation</a> •
-  <a href="#results">Results</a> •
   <a href="#citation">Citation</a>
 </p>
 
